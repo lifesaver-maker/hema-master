@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>이미란 교수와 함께하는 혈액학 국가고시 준비</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #172554;
+    }
+    header {
+      background: #1e3a8a;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    main {
+      max-width: 900px;
+      margin: 25px auto;
+      padding: 15px;
+    }
+    .card {
+      background: white;
+      padding: 24px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px #0001;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 13px 18px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    button:hover { background: #1d4ed8; }
+    .note { color: #64748b; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔬 이미란 교수와 함께하는 혈액학 국가고시 준비</h1>
+    <p>혈액학 이론 · 혈액학 실습</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>📚 학생 학습실</h2>
+      <p>부족한 주제를 선택하여 문제를 풀고 복습합니다.</p>
+      <button onclick="showTopics('theory')">혈액학 이론</button>
+      <button onclick="showTopics('practice')">혈액학 실습</button>
+      <div id="topics"></div>
+    </div>
+
+    <div class="card">
+      <h2>👨‍🏫 교수 관리실</h2>
+      <p>문제 등록, AI 문항 검토, 학생별 학습 관리</p>
+      <p class="note">교수 로그인과 관리 기능은 다음 단계에서 연결합니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>📅 학년도 관리</h2>
+      <p>교수가 매년 학생 이용 시작일과 종료일을 설정합니다.</p>
+      <p class="note">학년도별 계정 및 학습 기록 관리 기능은 개발 예정입니다.</p>
+    </div>
+  </main>
+
+  <script>
+    const theory = [
+      "적혈구의 성상", "백혈구의 성상", "혈소판의 성상",
+      "적혈구의 이상형태", "백혈구의 이상형태",
+      "거대핵세포 및 혈소판의 이상", "지혈",
+      "골수의 구조와 검사", "적혈구 질환",
+      "백혈구 질환", "출혈성 질환"
+    ];
+
+    const practice = [
+      "혈액채혈과 항응고제", "일반혈액학적 검사",
+      "말초혈액도말과 혈구의 관찰", "자동혈액분석기",
+      "특수혈액학적 검사", "혈액응고와 섬유소용해검사",
+      "골수검사", "특수세포화학 염색법",
+      "혈액염색체 검사", "분자생물학적검사 및 유세포분석"
+    ];
+
+    function showTopics(type) {
+      const list = type === "theory" ? theory : practice;
+      const container = document.getElementById("topics");
+      container.replaceChildren();
+
+      const heading = document.createElement("h3");
+      heading.textContent = type === "theory"
+        ? "혈액학 이론 주제"
+        : "혈액학 실습 주제";
+      container.appendChild(heading);
+
+      list.forEach(topic => {
+        const button = document.createElement("button");
+        button.textContent = topic;
+        button.addEventListener("click", () => {
+          alert(topic + " 문제은행은 다음 단계에서 연결됩니다.");
+        });
+        container.appendChild(button);
+      });
+    }
+  </script>
+</body>
+</html>
