@@ -202,6 +202,7 @@
                 </div>
                 <div id="topicPerformance" class="card">
                     <h2>📈 주제별 학습 성취도</h2>
+                    <p class="note">동일한 문제를 여러 번 풀어도 1문항으로 계산합니다. 정답률은 각 문항의 가장 최근 제출 결과를 기준으로 합니다.</p>
                     <p class="note">문제 제출 횟수 기준으로 집계합니다. 아직 풀지 않은 주제는 0회로 표시합니다.</p>
                     <button id="reloadTopicPerformance" type="button">주제별 성취도 새로고침</button>
                     <div id="topicPerformanceMsg" class="status hidden" role="status"></div>
@@ -599,7 +600,7 @@
                         const line = document.createElement('div'); line.className = 'student';
                         const label = document.createElement('strong'); label.textContent = topic;
                         const stat = document.createElement('div');
-                        stat.textContent = total ? `풀이 ${total}회 · 정답 ${correct}회 · 정답률 ${rate.toFixed(1)}%` : '아직 풀이 기록이 없습니다.';
+                        stat.textContent = total ? `풀이 ${total}문항 · 정답 ${correct}문항 · 정답률 ${rate.toFixed(1)}%` : '아직 풀이 기록이 없습니다.';
                         const bar = document.createElement('progress'); bar.max = 100; bar.value = rate;
                         bar.style.width = '100%'; bar.setAttribute('aria-label', topic + ' 정답률');
                         line.append(label, stat, bar);
@@ -647,7 +648,7 @@
                         const p = document.createElement('p');
                         const attempts=Number(t.total_attempts || 0), correctCount=Number(t.correct_attempts || 0);
                         const rate=attempts ? 100*correctCount/attempts : 0;
-                        p.textContent = `${t.subject === 'theory' ? '이론' : '실습'} · ${t.topic}: ${attempts}회 / ${rate.toFixed(1)}%` + (rate < 70 ? ' · 취약 주제' : '');
+                        p.textContent = `${t.subject === 'theory' ? '이론' : '실습'} · ${t.topic}: ${attempts}문항 / ${rate.toFixed(1)}%` + (rate < 70 ? ' · 취약 주제' : '');
                         details.append(p);
                     }
                     card.append(details); root.append(card);
