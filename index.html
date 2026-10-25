@@ -1,113 +1,408 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>이미란 교수와 함께하는 혈액학 국가고시 준비</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f1f5f9;
-      color: #172554;
-    }
-    header {
-      background: #1e3a8a;
-      color: white;
-      padding: 30px 20px;
-      text-align: center;
-    }
-    main {
-      max-width: 900px;
-      margin: 25px auto;
-      padding: 15px;
-    }
-    .card {
-      background: white;
-      padding: 24px;
-      margin-bottom: 18px;
-      border-radius: 14px;
-      box-shadow: 0 2px 8px #0001;
-    }
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 13px 18px;
-      margin: 5px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-    button:hover { background: #1d4ed8; }
-    .note { color: #64748b; font-size: 14px; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>🔬 이미란 교수와 함께하는 혈액학 국가고시 준비</h1>
-    <p>혈액학 이론 · 혈액학 실습</p>
-  </header>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>이미란 교수와 함께하는 혈액학 국가고시 준비</title>
+        <style>
+            * {
+                box-sizing: border-box
+            }
 
-  <main>
-    <div class="card">
-      <h2>📚 학생 학습실</h2>
-      <p>부족한 주제를 선택하여 문제를 풀고 복습합니다.</p>
-      <button onclick="showTopics('theory')">혈액학 이론</button>
-      <button onclick="showTopics('practice')">혈액학 실습</button>
-      <div id="topics"></div>
-    </div>
+            body {
+                margin: 0;
+                font-family: Arial,'Apple SD Gothic Neo',sans-serif;
+                background: #f1f5f9;
+                color: #172554
+            }
 
-    <div class="card">
-      <h2>👨‍🏫 교수 관리실</h2>
-      <p>문제 등록, AI 문항 검토, 학생별 학습 관리</p>
-      <p class="note">교수 로그인과 관리 기능은 다음 단계에서 연결합니다.</p>
-    </div>
+            header {
+                background: #1e3a8a;
+                color: white;
+                padding: 26px 18px;
+                text-align: center
+            }
 
-    <div class="card">
-      <h2>📅 학년도 관리</h2>
-      <p>교수가 매년 학생 이용 시작일과 종료일을 설정합니다.</p>
-      <p class="note">학년도별 계정 및 학습 기록 관리 기능은 개발 예정입니다.</p>
-    </div>
-  </main>
+            header h1 {
+                font-size: clamp(21px,4vw,30px)
+            }
 
-  <script>
-    const theory = [
-      "적혈구의 성상", "백혈구의 성상", "혈소판의 성상",
-      "적혈구의 이상형태", "백혈구의 이상형태",
-      "거대핵세포 및 혈소판의 이상", "지혈",
-      "골수의 구조와 검사", "적혈구 질환",
-      "백혈구 질환", "출혈성 질환"
-    ];
+            main {
+                max-width: 900px;
+                margin: 25px auto;
+                padding: 15px
+            }
 
-    const practice = [
-      "혈액채혈과 항응고제", "일반혈액학적 검사",
-      "말초혈액도말과 혈구의 관찰", "자동혈액분석기",
-      "특수혈액학적 검사", "혈액응고와 섬유소용해검사",
-      "골수검사", "특수세포화학 염색법",
-      "혈액염색체 검사", "분자생물학적검사 및 유세포분석"
-    ];
+            .card {
+                background: white;
+                padding: 24px;
+                margin-bottom: 18px;
+                border-radius: 14px;
+                box-shadow: 0 2px 8px #0001
+            }
 
-    function showTopics(type) {
-      const list = type === "theory" ? theory : practice;
-      const container = document.getElementById("topics");
-      container.replaceChildren();
+            button {
+                background: #2563eb;
+                color: white;
+                border: 0;
+                border-radius: 8px;
+                padding: 12px 17px;
+                margin: 5px;
+                cursor: pointer;
+                font-size: 15px
+            }
 
-      const heading = document.createElement("h3");
-      heading.textContent = type === "theory"
-        ? "혈액학 이론 주제"
-        : "혈액학 실습 주제";
-      container.appendChild(heading);
+            button:hover {
+                background: #1d4ed8
+            }
 
-      list.forEach(topic => {
-        const button = document.createElement("button");
-        button.textContent = topic;
-        button.addEventListener("click", () => {
-          alert(topic + " 문제은행은 다음 단계에서 연결됩니다.");
-        });
-        container.appendChild(button);
-      });
-    }
-  </script>
-</body>
+            button:disabled {
+                opacity: .5;
+                cursor: not-allowed
+            }
+
+            .note {
+                color: #64748b;
+                font-size: 14px
+            }
+
+            input {
+                display: block;
+                width: 100%;
+                padding: 12px;
+                margin: 8px 0 15px;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                font-size: 16px
+            }
+
+            .hidden {
+                display: none!important
+            }
+
+            .row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center
+            }
+
+            .secondary {
+                background: #64748b
+            }
+
+            .danger {
+                background: #b91c1c
+            }
+
+            .status {
+                padding: 12px;
+                border-radius: 8px;
+                background: #e0f2fe;
+                white-space: pre-wrap;
+                margin-top: 12px
+            }
+
+            .topic {
+                margin: 4px
+            }
+
+            .student {
+                padding: 12px;
+                border-bottom: 1px solid #e2e8f0
+            }
+
+            small {
+                color: #64748b
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>🔬 이미란 교수와 함께하는 혈액학 국가고시 준비</h1>
+            <p>혈액학 이론 · 혈액학 실습</p>
+        </header>
+        <main>
+            <section id="setup" class="card hidden">
+                <h2>초기 연결 설정 필요</h2>
+                <p>
+                    이 파일에서 <code>SUPABASE_PUBLISHABLE_KEY</code>
+                    값을 Supabase의 Publishable key로 변경해야 합니다.
+                </p>
+                <p class="note">sb_secret_ 또는 service_role 키는 절대 사용하지 마세요.</p>
+            </section>
+            <section id="auth" class="card">
+                <h2>HemaMaster 시작 페이지</h2>
+                <p>학생은 직접 회원가입하고 이메일 인증을 완료한 뒤 교수 승인을 기다립니다.</p>
+                <div class="row">
+                    <button id="showLogin">로그인</button>
+                    <button id="showSignup">학생 회원가입</button>
+                </div>
+                <div id="loginForm">
+                    <h3>로그인</h3>
+                    <label>
+                        이메일<input id="loginEmail" type="email" autocomplete="email">
+                    </label>
+                    <label>
+                        비밀번호<input id="loginPassword" type="password" autocomplete="current-password">
+                    </label>
+                    <button id="loginBtn">로그인</button>
+                </div>
+                <div id="signupForm" class="hidden">
+                    <h3>학생 회원가입</h3>
+                    <label>
+                        이름<input id="signupName" autocomplete="name">
+                    </label>
+                    <label>
+                        학번<input id="signupNumber" autocomplete="off">
+                    </label>
+                    <label>
+                        이메일<input id="signupEmail" type="email" autocomplete="email">
+                    </label>
+                    <label>
+                        비밀번호 (6자 이상)<input id="signupPassword" type="password" autocomplete="new-password">
+                    </label>
+                    <button id="signupBtn">이메일 인증 요청</button>
+                </div>
+                <div id="authMsg" class="status hidden" role="status"></div>
+            </section>
+            <section id="account" class="card hidden">
+                <div class="row">
+                    <strong id="welcome"></strong>
+                    <button class="secondary" id="logoutBtn">로그아웃</button>
+                </div>
+                <div id="accountMsg" class="status" role="status"></div>
+            </section>
+            <section id="studentArea" class="hidden">
+                <div class="card">
+                    <h2>📚 학생 학습실</h2>
+                    <p>부족한 주제를 선택하여 문제를 풀고 복습합니다.</p>
+                    <button id="theoryBtn">혈액학 이론</button>
+                    <button id="practiceBtn">혈액학 실습</button>
+                    <div id="topics"></div>
+                </div>
+            </section>
+            <section id="professorArea" class="hidden">
+                <div class="card">
+                    <h2>👨‍🏫 교수 관리실</h2>
+                    <p>학생 가입 승인 및 학습 관리</p>
+                    <button id="refreshStudents">학생 신청 목록 새로고침</button>
+                    <div id="students"></div>
+                    <p class="note">승인 버튼은 Supabase의 교수 전용 승인 함수를 통해 처리됩니다.</p>
+                </div>
+                <div class="card">
+                    <h2>📅 학년도 관리</h2>
+                    <p>교수가 매년 학생 이용 시작일과 종료일을 설정합니다.</p>
+                    <p class="note">학년도별 관리 화면은 다음 단계에서 연결합니다.</p>
+                </div>
+            </section>
+        </main>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+        <script>
+            'use strict';
+            const SUPABASE_URL = 'https://fdheskhxgexljaielvuw.supabase.co';
+            const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_V_ED2uQjWRc43tsSCZE5_w_TYxSEU_Y';
+            const theory = ['적혈구의 성상', '백혈구의 성상', '혈소판의 성상', '적혈구의 이상형태', '백혈구의 이상형태', '거대핵세포 및 혈소판의 이상', '지혈', '골수의 구조와 검사', '적혈구 질환', '백혈구 질환', '출혈성 질환'];
+            const practice = ['혈액채혈과 항응고제', '일반혈액학적 검사', '말초혈액도말과 혈구의 관찰', '자동혈액분석기', '특수혈액학적 검사', '혈액응고와 섬유소용해검사', '골수검사', '특수세포화학 염색법', '혈액염색체 검사', '분자생물학적검사 및 유세포분석'];
+            const el = id => document.getElementById(id);
+            const visible = (id, on) => el(id).classList.toggle('hidden', !on);
+            function message(id, s) {
+                el(id).textContent = s;
+                visible(id, true)
+            }
+            const configured = SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_') || SUPABASE_PUBLISHABLE_KEY.startsWith('eyJ');
+            visible('setup', !configured);
+            const db = configured && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+            if (configured && !db)
+                message('authMsg', 'Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');
+            el('showLogin').onclick = () => {
+                visible('loginForm', true);
+                visible('signupForm', false)
+            }
+            ;
+            el('showSignup').onclick = () => {
+                visible('loginForm', false);
+                visible('signupForm', true)
+            }
+            ;
+            el('signupBtn').onclick = async () => {
+                if (!db)
+                    return message('authMsg', '먼저 공개용 API 키를 설정하세요.');
+                const name = el('signupName').value.trim()
+                  , number = el('signupNumber').value.trim()
+                  , email = el('signupEmail').value.trim()
+                  , password = el('signupPassword').value;
+                if (!name || !number || !email || password.length < 6)
+                    return message('authMsg', '이름, 학번, 이메일과 6자 이상의 비밀번호를 입력하세요.');
+                el('signupBtn').disabled = true;
+                try {
+                    const {error} = await db.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            emailRedirectTo: location.origin + location.pathname,
+                            data: {
+                                full_name: name,
+                                student_number: number
+                            }
+                        }
+                    });
+                    if (error)
+                        throw error;
+                    message('authMsg', '가입 요청을 접수했습니다. 이메일 인증 링크를 확인하세요. 인증 후 로그인하고 교수 승인을 기다리세요.');
+                } catch (e) {
+                    message('authMsg', '가입 오류: ' + e.message)
+                } finally {
+                    el('signupBtn').disabled = false
+                }
+            }
+            ;
+            el('loginBtn').onclick = async () => {
+                if (!db)
+                    return message('authMsg', '먼저 공개용 API 키를 설정하세요.');
+                const {error} = await db.auth.signInWithPassword({
+                    email: el('loginEmail').value.trim(),
+                    password: el('loginPassword').value
+                });
+                if (error)
+                    message('authMsg', '로그인 오류: ' + error.message);
+                else
+                    await refresh()
+            }
+            ;
+            el('logoutBtn').onclick = async () => {
+                if (db)
+                    await db.auth.signOut();
+                await refresh()
+            }
+            ;
+            async function refresh() {
+                if (!db)
+                    return;
+                const {data: {user}, error} = await db.auth.getUser();
+                if (error || !user) {
+                    visible('auth', true);
+                    visible('account', false);
+                    visible('studentArea', false);
+                    visible('professorArea', false);
+                    return
+                }
+                visible('auth', false);
+                visible('account', true);
+                el('welcome').textContent = user.email || '사용자';
+                const {data: p, error: pe} = await db.from('profiles').select('full_name,role,is_active,approval_status,academic_year_id').eq('user_id', user.id).maybeSingle();
+                if (pe) {
+                    message('accountMsg', '프로필 조회 실패: ' + pe.message);
+                    visible('studentArea', false);
+                    visible('professorArea', false);
+                    return
+                }
+                if (!p) {
+                    message('accountMsg', '학생 프로필 생성 대기 중입니다. 잠시 후 새로고침하세요.');
+                    return
+                }
+                if (p.role === 'professor') {
+                    if (p.is_active && p.approval_status === 'approved') {
+                        message('accountMsg', '교수 계정으로 로그인했습니다.');
+                        visible('professorArea', true);
+                        visible('studentArea', false);
+                        await loadStudents()
+                    } else {
+                        message('accountMsg', '교수 계정 승인 또는 활성화가 필요합니다.');
+                        visible('professorArea', false);
+                        visible('studentArea', false)
+                    }
+                    return
+                }
+                visible('professorArea', false);
+                if (p.role !== 'student' || !p.is_active || p.approval_status !== 'approved') {
+                    message('accountMsg', '현재 승인 상태: ' + (p.approval_status || '확인 중') + '\n교수 승인 후 학습실을 이용할 수 있습니다.');
+                    visible('studentArea', false);
+                    return
+                }
+                const {data: access, error: ae} = await db.rpc('is_hemamaster_student_allowed');
+                if (ae) {
+                    message('accountMsg', '학년도 이용 자격 확인에 실패했습니다: ' + ae.message);
+                    visible('studentArea', false);
+                    return
+                }
+                visible('studentArea', access === true);
+                message('accountMsg', access === true ? '학습실에 입장할 수 있습니다.' : '현재 이용 가능한 학년도가 없거나 이용 기간이 아닙니다.')
+            }
+            function showTopics(type) {
+                const list = type === 'theory' ? theory : practice
+                  , container = el('topics');
+                container.replaceChildren();
+                const h = document.createElement('h3');
+                h.textContent = type === 'theory' ? '혈액학 이론 주제' : '혈액학 실습 주제';
+                container.append(h);
+                list.forEach(topic => {
+                    const b = document.createElement('button');
+                    b.className = 'topic';
+                    b.textContent = topic;
+                    b.onclick = () => alert(topic + ' 문제은행은 다음 단계에서 연결됩니다.');
+                    container.append(b)
+                }
+                )
+            }
+            el('theoryBtn').onclick = () => showTopics('theory');
+            el('practiceBtn').onclick = () => showTopics('practice');
+            async function loadStudents() {
+                if (!db)
+                    return;
+                const root = el('students');
+                root.textContent = '학생 목록 불러오는 중...';
+                const {data, error} = await db.from('profiles').select('user_id,full_name,student_number,approval_status,is_active').eq('role', 'student').order('full_name');
+                if (error) {
+                    root.textContent = '조회 오류: ' + error.message;
+                    return
+                }
+                root.replaceChildren();
+                if (!data.length) {
+                    root.textContent = '등록된 학생이 없습니다.';
+                    return
+                }
+                for (const p of data) {
+                    const line = document.createElement('div');
+                    line.className = 'student';
+                    const title = document.createElement('strong');
+                    title.textContent = (p.full_name || '이름 없음') + ' / ' + (p.student_number || '학번 없음');
+                    const state = document.createElement('div');
+                    state.textContent = '상태: ' + p.approval_status + (p.is_active ? '' : ' (비활성)');
+                    line.append(title, state);
+                    if (p.approval_status === 'pending') {
+                        const btn = document.createElement('button');
+                        btn.textContent = '승인';
+                        btn.onclick = async () => {
+                            if (!confirm((p.full_name || '이 학생') + '을 승인하시겠습니까?'))
+                                return;
+                            btn.disabled = true;
+                            const {data: approved, error} = await db.rpc('hemamaster_approve_student', {
+                                target_user_id: p.user_id
+                            });
+                            if (error) {
+                                alert('승인 실패: ' + error.message);
+                                btn.disabled = false
+                            } else if (approved !== true) {
+                                alert('승인할 수 없는 신청입니다. 목록을 새로고침합니다.');
+                                await loadStudents()
+                            } else
+                                await loadStudents()
+                        }
+                        ;
+                        line.append(btn)
+                    }
+                    root.append(line)
+                }
+            }
+            el('refreshStudents').onclick = loadStudents;
+            if (db) {
+                db.auth.onAuthStateChange( () => {
+                    setTimeout(refresh, 0)
+                }
+                );
+                refresh()
+            }
+        </script>
+    </body>
 </html>
