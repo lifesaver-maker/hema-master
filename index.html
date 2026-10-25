@@ -77,6 +77,10 @@
             }
 
             textarea { resize: vertical; }
+            .quiz-question { border-top: 1px solid #e2e8f0; padding: 18px 0; }
+            .quiz-choice { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin: 8px 0; cursor: pointer; }
+            .quiz-choice input { display: inline-block; width: auto; margin: 3px 0 0; }
+            .quiz-result { margin-top: 12px; padding: 12px; border-radius: 8px; background: #eff6ff; white-space: pre-wrap; }
             .preview { overflow-x: auto; margin-top: 14px; }
             .preview table { border-collapse: collapse; width: 100%; font-size: 13px; }
             .preview th, .preview td { border: 1px solid #cbd5e1; padding: 7px; text-align: left; }
@@ -185,6 +189,11 @@
                     <button id="theoryBtn">혈액학 이론</button>
                     <button id="practiceBtn">혈액학 실습</button>
                     <div id="topics"></div>
+                </div>
+                <div id="quizArea" class="card hidden">
+                    <h2 id="quizHeading">문제 풀이</h2>
+                    <div id="quizMsg" class="status" role="status"></div>
+                    <div id="quizQuestions"></div>
                 </div>
             </section>
             <section id="professorArea" class="hidden">
@@ -335,6 +344,8 @@
                     visible('account', false);
                     visible('studentArea', false);
                     visible('professorArea', false);
+                    ++quizRequestSequence;
+                    visible('quizArea', false);
                     return
                 }
                 visible('auth', false);
@@ -386,6 +397,8 @@
                 const list = type === 'theory' ? theory : practice
                   , container = el('topics');
                 container.replaceChildren();
+                ++quizRequestSequence;
+                visible('quizArea', false);
                 const h = document.createElement('h3');
                 h.textContent = type === 'theory' ? '혈액학 이론 주제' : '혈액학 실습 주제';
                 container.append(h);
@@ -393,10 +406,86 @@
                     const b = document.createElement('button');
                     b.className = 'topic';
                     b.textContent = topic;
-                    b.onclick = () => alert(topic + ' 문제은행은 다음 단계에서 연결됩니다.');
+                    b.onclick = () => loadStudentQuestions(type, topic);
                     container.append(b)
                 }
                 )
+            }
+            // 학생에게는 공개 문제와 보기만 전달하며, 정답과 해설은 제출 후 서버 응답으로 확인합니다.
+            let quizRequestSequence = 0;
+            async function loadStudentQuestions(subject, topic) {
+                const seq = ++quizRequestSequence;
+                visible('quizArea', true);
+                el('quizHeading').textContent = (subject === 'theory' ? '혈액학 이론' : '혈액학 실습') + ' · ' + topic;
+                el('quizQuestions').replaceChildren();
+                message('quizMsg', '공개 문제를 불러오는 중입니다...');
+                const {data, error} = await db.rpc('hemamaster_get_questions', {
+                    p_subject: subject, p_topic: topic
+                });
+                if (seq !== quizRequestSequence) return;
+                if (error) return message('quizMsg', '문제 조회 실패: ' + error.message);
+                const questions = data || [];
+                if (!questions.length) return message('quizMsg', '이 주제에는 아직 공개된 문제가 없습니다.');
+                message('quizMsg', '공개 문제 ' + questions.length + '개 · 답안을 선택한 뒤 제출하세요.');
+                for (const [index, q] of questions.entries()) {
+                    const section = document.createElement('section');
+                    section.className = 'quiz-question';
+                    const title = document.createElement('h3');
+                    title.textContent = '문제 ' + (index + 1) + '. ' + q.question_text;
+                    section.append(title);
+                    const choices = document.createElement('div');
+                    const groupName = 'question-' + seq + '-' + q.id;
+                    for (let n = 1; n <= 5; n++) {
+                        const label = document.createElement('label');
+                        label.className = 'quiz-choice';
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.name = groupName;
+                        input.value = String(n);
+                        const span = document.createElement('span');
+                        span.textContent = n + '. ' + q['option_' + n];
+                        label.append(input, span);
+                        choices.append(label);
+                    }
+                    section.append(choices);
+                    const submit = document.createElement('button');
+                    submit.type = 'button';
+                    submit.textContent = '정답 제출';
+                    const result = document.createElement('div');
+                    result.className = 'quiz-result hidden';
+                    result.setAttribute('role', 'status');
+                    submit.onclick = async () => {
+                        const selected = choices.querySelector('input:checked');
+                        if (!selected) return alert('답안을 먼저 선택하세요.');
+                        submit.disabled = true;
+                        submit.textContent = '채점 중...';
+                        try {
+                            const {data: graded, error: gradingError} = await db.rpc('hemamaster_submit_answer', {
+                                p_question_id: q.id, p_answer: Number(selected.value)
+                            });
+                            if (gradingError) throw gradingError;
+                            const item = Array.isArray(graded) ? graded[0] : graded;
+                            if (!item || typeof item.is_correct !== 'boolean')
+                                throw Error('채점 응답 형식이 예상과 다릅니다. 16번 SQL 함수의 반환값을 확인해야 합니다.');
+                            const correct = item.correct_answer;
+                            const explanation = item.explanation;
+                            result.textContent = (item.is_correct ? '정답입니다! 🎉' : '오답입니다.') +
+                                (correct != null ? '\n정답: ' + correct + '번' : '') +
+                                (explanation != null ? '\n해설: ' + explanation : '');
+                            visibleResult(true);
+                            choices.querySelectorAll('input').forEach(input => input.disabled = true);
+                            submit.textContent = '채점 완료';
+                        } catch (e) {
+                            result.textContent = '채점 실패: ' + e.message + '\n화면을 캡처해 알려주세요. 기존 문제는 변경되지 않습니다.';
+                            visibleResult(true);
+                            submit.disabled = false;
+                            submit.textContent = '정답 제출';
+                        }
+                    };
+                    function visibleResult(on) { result.classList.toggle('hidden', !on); }
+                    section.append(submit, result);
+                    el('quizQuestions').append(section);
+                }
             }
             el('theoryBtn').onclick = () => showTopics('theory');
             el('practiceBtn').onclick = () => showTopics('practice');
