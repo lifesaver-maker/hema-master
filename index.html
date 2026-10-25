@@ -202,7 +202,7 @@
                 </div>
                 <div id="wrongNote" class="card">
                     <h2>📝 나의 오답노트</h2>
-                    <p class="note">틀린 답안을 최근 순서로 확인합니다. 같은 문제를 여러 번 틀리면 각각 표시됩니다.</p>
+                    <p class="note">틀린 문제를 다시 풀어보세요. 복습 시에는 정답과 해설을 가리고 재도전할 수 있습니다. 같은 문제를 여러 번 틀리면 각각 표시됩니다.</p>
                     <button id="reloadWrongNote" type="button">오답노트 새로고침</button>
                     <div id="wrongNoteMsg" class="status hidden" role="status"></div>
                     <div id="wrongNoteList"></div>
@@ -473,6 +473,7 @@
                     const question = document.createElement('p');
                     question.textContent = q.question_text || '문제 내용 없음';
                     section.append(heading, question);
+                    const review = document.createElement('div');
                     for (let n = 1; n <= 5; n++) {
                         const choice = document.createElement('div');
                         choice.className = 'quiz-choice';
@@ -481,19 +482,81 @@
                         choice.textContent = n + '. ' + (q['option_' + n] || '') + (correct ? '  ✓ 정답' : '') + (mine ? '  ← 내가 선택한 답' : '');
                         if (correct) { choice.style.borderColor = '#16a34a'; choice.style.background = '#f0fdf4'; }
                         else if (mine) { choice.style.borderColor = '#dc2626'; choice.style.background = '#fef2f2'; }
-                        section.append(choice);
+                        review.append(choice);
                     }
                     const explanation = document.createElement('div');
                     explanation.className = 'quiz-result';
                     explanation.textContent = '해설: ' + (q.explanation || '등록된 해설이 없습니다.');
-                    section.append(explanation);
+                    review.append(explanation);
+                    section.append(review);
                     if (q.answered_at) {
                         const date = document.createElement('p');
                         date.className = 'note';
                         const dt = new Date(q.answered_at);
                         date.textContent = '제출 일시: ' + (Number.isNaN(dt.getTime()) ? q.answered_at : dt.toLocaleString('ko-KR'));
-                        section.append(date);
+                        review.append(date);
                     }
+                    const retryButton = document.createElement('button');
+                    retryButton.type = 'button';
+                    retryButton.textContent = '이 문제 다시 풀기';
+                    const retryPanel = document.createElement('div');
+                    retryPanel.className = 'hidden';
+                    const retryChoices = document.createElement('div');
+                    const retryResult = document.createElement('div');
+                    retryResult.className = 'quiz-result hidden';
+                    retryResult.setAttribute('role', 'status');
+                    retryButton.onclick = () => {
+                        if (!retryPanel.classList.contains('hidden')) return;
+                        review.classList.add('hidden');
+                        retryChoices.replaceChildren();
+                        for (let n = 1; n <= 5; n++) {
+                            const label = document.createElement('label');
+                            label.className = 'quiz-choice';
+                            const input = document.createElement('input');
+                            input.type = 'radio';
+                            input.name = 'retry-' + q.answer_id;
+                            input.value = String(n);
+                            const caption = document.createElement('span');
+                            caption.textContent = n + '. ' + (q['option_' + n] || '');
+                            label.append(input, caption);
+                            retryChoices.append(label);
+                        }
+                        retryPanel.classList.remove('hidden');
+                        retryButton.classList.add('hidden');
+                    };
+                    const retrySubmit = document.createElement('button');
+                    retrySubmit.type = 'button';
+                    retrySubmit.textContent = '재도전 답안 제출';
+                    retrySubmit.onclick = async () => {
+                        const selected = retryChoices.querySelector('input:checked');
+                        if (!selected) return alert('답안을 먼저 선택하세요.');
+                        retrySubmit.disabled = true;
+                        retrySubmit.textContent = '채점 중...';
+                        try {
+                            const {data: graded, error: gradingError} = await db.rpc('hemamaster_submit_answer', {
+                                p_question_id: q.question_id, p_answer: Number(selected.value)
+                            });
+                            if (gradingError) throw gradingError;
+                            const item = Array.isArray(graded) ? graded[0] : graded;
+                            if (!item || typeof item.is_correct !== 'boolean') throw Error('채점 응답을 확인할 수 없습니다.');
+                            retryResult.textContent = (item.is_correct ? '재도전 정답입니다! 🎉' : '재도전 오답입니다.') +
+                                (item.correct_answer != null ? '\n정답: ' + item.correct_answer + '번' : '') +
+                                (item.explanation != null ? '\n해설: ' + item.explanation : '') +
+                                '\n풀이 기록이 저장되었습니다. 최신 오답 목록은 위의 새로고침 버튼으로 확인하세요.';
+                            retryResult.classList.remove('hidden');
+                            retryChoices.querySelectorAll('input').forEach(input => input.disabled = true);
+                            retrySubmit.textContent = '재도전 채점 완료';
+                            review.classList.remove('hidden');
+                            await loadLearningSummary();
+                        } catch (e) {
+                            retryResult.textContent = '재도전 실패: ' + e.message;
+                            retryResult.classList.remove('hidden');
+                            retrySubmit.disabled = false;
+                            retrySubmit.textContent = '재도전 답안 제출';
+                        }
+                    };
+                    retryPanel.append(retryChoices, retrySubmit, retryResult);
+                    section.append(retryButton, retryPanel);
                     root.append(section);
                 }
             }
