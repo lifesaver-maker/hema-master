@@ -197,7 +197,7 @@
                 </div>
                 <div class="card">
                     <h2>📝 개별 문제 등록</h2>
-                    <p class="note">등록한 문제는 기본적으로 비공개입니다. 공개 관리 기능은 다음 단계에서 연결합니다.</p>
+                    <p class="note">등록한 문제는 기본적으로 비공개입니다. 공개 여부는 아래 문제은행 관리에서 변경할 수 있습니다.</p>
                     <form id="questionForm">
                         <label>구분<select id="qSubject" required><option value="theory">혈액학 이론</option><option value="practice">혈액학 실습</option></select></label>
                         <label>주제<select id="qTopic" required></select></label>
@@ -219,6 +219,25 @@
                     <div id="excelMsg" class="status hidden" role="status"></div>
                     <div id="excelPreview" class="preview"></div>
                     <button id="uploadExcel" class="hidden" type="button">검사된 문제 모두 등록</button>
+                </div>
+                <div class="card">
+                    <h2>📋 문제은행 관리</h2>
+                    <p class="note">등록된 문제를 조회하고 수정하거나 학생 공개 여부를 변경합니다. 공개된 문제는 승인된 학생에게 표시될 수 있습니다.</p>
+                    <button id="reloadBank" type="button">문제 목록 새로고침</button>
+                    <div id="bankMsg" class="status hidden" role="status"></div>
+                    <div id="bankList"></div>
+                    <form id="editQuestionForm" class="hidden">
+                        <h3 id="editHeading">문제 수정</h3>
+                        <label>구분<select id="eSubject" required><option value="theory">혈액학 이론</option><option value="practice">혈액학 실습</option></select></label>
+                        <label>주제<select id="eTopic" required></select></label>
+                        <label>문제 내용<textarea id="eText" rows="3" required></textarea></label>
+                        <div id="eOptions"></div>
+                        <label>정답 번호<select id="eAnswer" required><option value="1">1번</option><option value="2">2번</option><option value="3">3번</option><option value="4">4번</option><option value="5">5번</option></select></label>
+                        <label>해설<textarea id="eExplanation" rows="3" required></textarea></label>
+                        <label>난이도<select id="eDifficulty"><option value="medium">보통</option><option value="easy">쉬움</option><option value="hard">어려움</option></select></label>
+                        <button id="saveEditedQuestion" type="submit">수정 내용 저장</button>
+                        <button id="cancelEditQuestion" type="button" class="secondary">수정 취소</button>
+                    </form>
                 </div>
                 <div class="card">
                     <h2>📅 학년도 관리</h2>
@@ -339,7 +358,8 @@
                         message('accountMsg', '교수 계정으로 로그인했습니다.');
                         visible('professorArea', true);
                         visible('studentArea', false);
-                        await loadStudents()
+                        await loadStudents();
+                        await loadQuestionBank()
                     } else {
                         message('accountMsg', '교수 계정 승인 또는 활성화가 필요합니다.');
                         visible('professorArea', false);
@@ -580,6 +600,128 @@
                     visible('uploadExcel', false);
                 } finally { button.disabled = false; }
             };
+            // 교수 문제은행: 정답을 포함한 전체 목록은 교수 전용 RPC에서만 읽음
+            let bankQuestions = [];
+            let editingQuestionId = null;
+            function updateEditTopics() {
+                const topics = el('eSubject').value === 'theory' ? theory : practice;
+                const previous = el('eTopic').value;
+                el('eTopic').replaceChildren(...topics.map(t => new Option(t, t)));
+                if (topics.includes(previous)) el('eTopic').value = previous;
+            }
+            el('eSubject').addEventListener('change', updateEditTopics);
+            updateEditTopics();
+            for (let i = 1; i <= 5; i++) {
+                const label = document.createElement('label');
+                label.textContent = '보기 ' + i;
+                const input = document.createElement('input');
+                input.id = 'eOption' + i;
+                input.required = true;
+                label.append(input);
+                el('eOptions').append(label);
+            }
+            function beginEditQuestion(q) {
+                editingQuestionId = q.id;
+                el('editHeading').textContent = '문제 #' + q.id + ' 수정';
+                el('eSubject').value = q.subject;
+                updateEditTopics();
+                el('eTopic').value = q.topic;
+                el('eText').value = q.question_text;
+                for (let i = 1; i <= 5; i++) el('eOption' + i).value = q['option_' + i];
+                el('eAnswer').value = String(q.correct_answer);
+                el('eExplanation').value = q.explanation;
+                el('eDifficulty').value = q.difficulty;
+                visible('editQuestionForm', true);
+                el('editQuestionForm').scrollIntoView({behavior:'smooth', block:'start'});
+            }
+            el('cancelEditQuestion').onclick = () => {
+                editingQuestionId = null;
+                visible('editQuestionForm', false);
+            };
+            async function loadQuestionBank() {
+                const root = el('bankList');
+                root.replaceChildren();
+                message('bankMsg', '문제 목록 불러오는 중...');
+                const {data, error} = await db.rpc('hemamaster_professor_get_questions');
+                if (error) return message('bankMsg', '조회 실패: ' + error.message);
+                bankQuestions = data || [];
+                message('bankMsg', '총 ' + bankQuestions.length + '문제 (공개 ' + bankQuestions.filter(q => q.is_published).length + '문제)');
+                if (!bankQuestions.length) {
+                    root.textContent = '등록된 문제가 없습니다.';
+                    return;
+                }
+                for (const q of bankQuestions) {
+                    const line = document.createElement('div');
+                    line.className = 'student';
+                    const heading = document.createElement('strong');
+                    heading.textContent = '#' + q.id + ' · ' + (q.subject === 'theory' ? '이론' : '실습') + ' · ' + q.topic;
+                    const desc = document.createElement('p');
+                    desc.textContent = q.question_text;
+                    const status = document.createElement('small');
+                    status.textContent = q.is_published ? '공개 중' : '비공개';
+                    const actions = document.createElement('div');
+                    actions.className = 'row';
+                    const edit = document.createElement('button');
+                    edit.type = 'button';
+                    edit.textContent = '수정';
+                    edit.onclick = () => beginEditQuestion(q);
+                    const publish = document.createElement('button');
+                    publish.type = 'button';
+                    publish.className = q.is_published ? 'secondary' : '';
+                    publish.textContent = q.is_published ? '비공개로 전환' : '학생에게 공개';
+                    publish.onclick = async () => {
+                        const next = !q.is_published;
+                        if (!confirm('문제 #' + q.id + '을(를) ' + (next ? '학생에게 공개' : '비공개로 전환') + '하시겠습니까?')) return;
+                        publish.disabled = true;
+                        const {data: ok, error: err} = await db.rpc('hemamaster_professor_set_published', {
+                            p_question_id: q.id, p_is_published: next
+                        });
+                        if (err || ok !== true) {
+                            message('bankMsg', '공개 상태 변경 실패: ' + (err ? err.message : '문제를 찾지 못했습니다.'));
+                            publish.disabled = false;
+                        } else {
+                            await loadQuestionBank();
+                        }
+                    };
+                    actions.append(edit, publish);
+                    line.append(heading, desc, status, actions);
+                    root.append(line);
+                }
+            }
+            el('reloadBank').onclick = loadQuestionBank;
+            el('editQuestionForm').addEventListener('submit', async event => {
+                event.preventDefault();
+                if (editingQuestionId === null) return;
+                const q = {
+                    subject: el('eSubject').value, topic: el('eTopic').value,
+                    question_text: el('eText').value.trim(),
+                    correct_answer: Number(el('eAnswer').value),
+                    explanation: el('eExplanation').value.trim(),
+                    difficulty: el('eDifficulty').value
+                };
+                for (let i = 1; i <= 5; i++) q['option_' + i] = el('eOption' + i).value.trim();
+                try {
+                    validateQuestion(q, '수정 내용');
+                    const button = el('saveEditedQuestion');
+                    button.disabled = true;
+                    try {
+                        const {data: ok, error} = await db.rpc('hemamaster_professor_update_question', {
+                            p_question_id: editingQuestionId,
+                            p_subject: q.subject, p_topic: q.topic, p_question_text: q.question_text,
+                            p_option_1: q.option_1, p_option_2: q.option_2, p_option_3: q.option_3,
+                            p_option_4: q.option_4, p_option_5: q.option_5,
+                            p_correct_answer: q.correct_answer, p_explanation: q.explanation,
+                            p_difficulty: q.difficulty
+                        });
+                        if (error) throw error;
+                        if (ok !== true) throw Error('수정할 문제를 찾지 못했습니다.');
+                        editingQuestionId = null;
+                        visible('editQuestionForm', false);
+                        await loadQuestionBank();
+                        message('bankMsg', '문제 수정이 완료되었습니다.');
+                    } finally { button.disabled = false; }
+                } catch (e) { message('bankMsg', '수정 실패: ' + e.message); }
+            });
             el('refreshStudents').onclick = loadStudents;
             if (db) {
                 db.auth.onAuthStateChange( () => {
