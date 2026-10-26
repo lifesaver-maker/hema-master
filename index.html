@@ -147,11 +147,11 @@
                 <h2>혈액학 국가고시 학습 시스템</h2>
                 <p>학생은 직접 회원가입하고 이메일 인증을 완료한 뒤 교수 승인을 기다립니다.</p>
                 <div class="row">
-                    <button id="showLogin">로그인</button>
                     <button id="showSignup">학생 회원가입</button>
                 </div>
                 <div id="loginForm">
                     <h3>로그인</h3>
+                    <p class="note">학생과 교수 모두 같은 로그인 창을 이용합니다.</p>
                     <label>
                         이메일<input id="loginEmail" type="email" autocomplete="email">
                     </label>
@@ -306,14 +306,10 @@
             const db = configured && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
             if (configured && !db)
                 message('authMsg', 'Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');
-            el('showLogin').onclick = () => {
-                visible('loginForm', true);
-                visible('signupForm', false)
-            }
-            ;
             el('showSignup').onclick = () => {
-                visible('loginForm', false);
-                visible('signupForm', true)
+                const opening = el('signupForm').classList.contains('hidden');
+                visible('signupForm', opening);
+                el('showSignup').textContent = opening ? '회원가입 닫기' : '학생 회원가입';
             }
             ;
             el('signupBtn').onclick = async () => {
